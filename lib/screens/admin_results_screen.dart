@@ -223,6 +223,7 @@ class _AdminResultsScreenState extends State<AdminResultsScreen> {
                     ),
                   ),
                 ),
+              ),
     );
   }
 }
