@@ -1,46 +1,197 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Simulador interactivo de Gestión Administrativa">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="capavanplay">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CapavanPlay">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>capavanplay</title>
+  <title>GestoLab CAPAVAN</title>
   <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <style>
+    /* PWA Install Banner Styles */
+    #pwa-install-banner {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 400px;
+      background: #1e293b;
+      color: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 99999;
+      font-family: system-ui, -apple-system, sans-serif;
+      border: 1px solid #334155;
+    }
+    .pwa-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .pwa-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      margin-right: 12px;
+    }
+    .pwa-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin: 0;
+    }
+    .pwa-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin: 2px 0 0 0;
+    }
+    .pwa-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .pwa-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .pwa-btn-install {
+      background: #3b82f6;
+      color: white;
+    }
+    .pwa-btn-install:active { background: #2563eb; }
+    .pwa-btn-close {
+      background: #334155;
+      color: white;
+    }
+    
+    /* iOS Instructions */
+    #ios-instructions {
+      display: none;
+      font-size: 13px;
+      color: #cbd5e1;
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      text-align: center;
+      border: 1px dashed #475569;
+    }
+  </style>
+</head>
+<body style="background-color: #0F172A;">
+  
   <script src="flutter_bootstrap.js" async></script>
+
+  <!-- HTML overlay for PWA Installation -->
+  <div id="pwa-install-banner">
+    <div class="pwa-header">
+      <img src="icons/Icon-192.png" alt="App Icon" class="pwa-icon">
+      <div>
+        <p class="pwa-title">Instalar CapavanPlay</p>
+        <p class="pwa-subtitle">Juega sin distracciones en pantalla completa.</p>
+      </div>
+    </div>
+    
+    <div id="ios-instructions">
+      Para instalar en tu iPhone/iPad:<br><br>
+      1. Toca el botón <b>Compartir</b> <svg width="14" height="18" viewBox="0 0 14 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;"><path d="M7 1v11M7 1L3 5M7 1l4 4M2 10v4c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2v-4"/></svg> abajo.<br>
+      2. Selecciona <b>"Agregar a inicio"</b> <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round;"><path d="M8 3v10M3 8h10M2 14h12"/></svg>.
+    </div>
+
+    <div class="pwa-actions" id="android-actions">
+      <button class="pwa-btn pwa-btn-close" onclick="closePwaBanner()">Ahora no</button>
+      <button class="pwa-btn pwa-btn-install" id="btn-install" onclick="installPwa()">Instalar App</button>
+    </div>
+    
+    <div class="pwa-actions" id="ios-actions" style="display: none; margin-top: 10px;">
+      <button class="pwa-btn pwa-btn-close" onclick="closePwaBanner()">Entendido</button>
+    </div>
+  </div>
+
+  <script>
+    let deferredPrompt;
+    const banner = document.getElementById('pwa-install-banner');
+    const iosInstructions = document.getElementById('ios-instructions');
+    const androidActions = document.getElementById('android-actions');
+    const iosActions = document.getElementById('ios-actions');
+
+    // Comprobar si ya está instalada o si estamos en standalone
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    
+    if (!isStandalone) {
+      // Detección de iOS
+      const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+      };
+
+      if (isIos()) {
+        // En iOS mostramos el banner tras 3 segundos para que cargue Flutter de fondo
+        setTimeout(() => {
+          if(!localStorage.getItem('pwa_declined')) {
+            banner.style.display = 'block';
+            iosInstructions.style.display = 'block';
+            androidActions.style.display = 'none';
+            iosActions.style.display = 'flex';
+          }
+        }, 3000);
+      } else {
+        // En Android (Chrome/Edge) escuchamos el evento nativo
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevenir que Chrome muestre el mini-infobar nativo por defecto
+          e.preventDefault();
+          deferredPrompt = e;
+          
+          if(!localStorage.getItem('pwa_declined')) {
+            banner.style.display = 'block';
+          }
+        });
+      }
+    }
+
+    function installPwa() {
+      if (deferredPrompt) {
+        // Mostrar el prompt nativo de Android
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('El usuario aceptó la instalación');
+            banner.style.display = 'none';
+          } else {
+            console.log('El usuario canceló la instalación');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function closePwaBanner() {
+      banner.style.display = 'none';
+      // Recordar que el usuario lo cerró para no molestarlo en esta sesión
+      localStorage.setItem('pwa_declined', 'true');
+    }
+    
+    // Si se instala correctamente, ocultar el banner
+    window.addEventListener('appinstalled', (evt) => {
+      banner.style.display = 'none';
+    });
+  </script>
 </body>
 </html>

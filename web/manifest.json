@@ -1,11 +1,11 @@
 {
-    "name": "capavanplay",
-    "short_name": "capavanplay",
+    "name": "GestoLab CAPAVAN",
+    "short_name": "CapavanPlay",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0F172A",
-    "theme_color": "#0F172A",
-    "description": "A new Flutter project.",
+    "theme_color": "#1E3A8A",
+    "description": "Simulador interactivo de Gestión Administrativa",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
