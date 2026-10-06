@@ -186,21 +186,90 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Selector de Rol (Docente / Estudiante)
-                  Center(
-                    child: SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment(value: false, label: Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Estudiante'))),
-                        ButtonSegment(value: true, label: Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Docente'))),
-                      ],
-                      selected: {_isAdminMode},
-                      onSelectionChanged: (Set<bool> newSelection) {
-                        setState(() {
-                          _isAdminMode = newSelection.first;
-                        });
-                      },
+                  // Selector de Rol Responsivo (Docente / Estudiante)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isAdminMode = false;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: !_isAdminMode ? const Color(0xFF10B981) : Colors.transparent, // Emerald
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.school, color: !_isAdminMode ? Colors.white : Colors.white70, size: 18),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Estudiante',
+                                          style: TextStyle(
+                                            color: !_isAdminMode ? Colors.white : Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isAdminMode = true;
+                                });
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: _isAdminMode ? const Color(0xFF3B82F6) : Colors.transparent, // Blue
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.admin_panel_settings, color: _isAdminMode ? Colors.white : Colors.white70, size: 18),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Docente',
+                                          style: TextStyle(
+                                            color: _isAdminMode ? Colors.white : Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 24),
 
                   Text(

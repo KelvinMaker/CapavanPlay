@@ -12,6 +12,13 @@ class AdminResultsScreen extends StatefulWidget {
 }
 
 class _AdminResultsScreenState extends State<AdminResultsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> _estudiantes = [];
@@ -161,10 +168,16 @@ class _AdminResultsScreenState extends State<AdminResultsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _estudiantes.isEmpty
               ? const Center(child: Text('Aún no hay estudiantes registrados.'))
-              : SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+              : Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  thickness: 8,
+                  radius: const Radius.circular(10),
                   child: SingleChildScrollView(
-                    child: DataTable(
+                    controller: _scrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: SingleChildScrollView(
+                      child: DataTable(
                       headingRowColor: MaterialStateProperty.all(Colors.blue.shade900),
                       headingTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       columns: const [

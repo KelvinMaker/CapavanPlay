@@ -274,7 +274,7 @@ class _HubScreenState extends State<HubScreen> {
                   crossAxisCount: columnas,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 1.0, // Cuadrados perfectos
+                  childAspectRatio: 0.85, // Mas rectangulares
                   children: [
                     _buildJuegoCard(
                       'Calculadora de Cuantías',
