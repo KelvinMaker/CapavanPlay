@@ -4,8 +4,10 @@ import 'topics_screen.dart';
 import 'auth_screen.dart';
 import 'hub_screen.dart';
 import 'admin_results_screen.dart';
+import 'admin_survey_screen.dart';
 import 'hub_screen.dart';
 import 'admin_results_screen.dart';
+import 'admin_survey_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -126,6 +128,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
+
+                    if (_userProfile!['rol'] == 'docente') ...[
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: _MenuCard(
+                          title: 'ESTADÍSTICAS UX',
+                          subtitle: 'Resultados de la encuesta TAM',
+                          icon: Icons.pie_chart,
+                          color: Colors.purple.shade600,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const AdminSurveyScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                 ] else ...[
                   const Center(child: Text('No se pudo cargar el perfil.')),
                 ]

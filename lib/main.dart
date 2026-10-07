@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,33 +17,76 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Timer? _inactivityTimer;
+
+  void _resetTimer() {
+    _inactivityTimer?.cancel();
+    _inactivityTimer = Timer(const Duration(minutes: 10), _logOutUser);
+  }
+
+  void _logOutUser() async {
+    final supabase = Supabase.instance.client;
+    if (supabase.auth.currentUser != null) {
+      await supabase.auth.signOut();
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _resetTimer();
+  }
+
+  @override
+  void dispose() {
+    _inactivityTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final supabase = Supabase.instance.client;
     
-    return MaterialApp(
-      title: 'CapavanPlay',
-      debugShowCheckedModeBanner: false,
-      // Aplicando un tema oscuro base inspirado en los bocetos
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A), // Slate 900
-        primaryColor: const Color(0xFF3B82F6), // Blue 500
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F172A),
-          elevation: 0,
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _resetTimer(),
+      onPointerMove: (_) => _resetTimer(),
+      onPointerUp: (_) => _resetTimer(),
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        title: 'CapavanPlay',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: const Color(0xFF0F172A),
+          primaryColor: const Color(0xFF3B82F6),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF0F172A),
+            elevation: 0,
+          ),
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFF3B82F6),
+            secondary: Color(0xFF10B981),
+            surface: Color(0xFF1E293B),
+          ),
+          useMaterial3: true,
         ),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF3B82F6), // Blue 500
-          secondary: Color(0xFF10B981), // Emerald 500
-          surface: Color(0xFF1E293B), // Slate 800 (para las tarjetas)
-        ),
-        useMaterial3: true,
+        home: supabase.auth.currentUser == null ? const AuthScreen() : const HomeScreen(),
       ),
-      home: supabase.auth.currentUser == null ? const AuthScreen() : const HomeScreen(),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'actividad1_screen.dart';
 import 'actividad2_screen.dart';
 import 'actividad3_screen.dart';
 import 'actividad4_screen.dart';
+import 'survey_screen.dart';
 
 class HubScreen extends StatefulWidget {
   const HubScreen({super.key});
@@ -16,6 +17,7 @@ class _HubScreenState extends State<HubScreen> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> _intentos = [];
+  bool _encuestaCompletada = false;
 
   @override
   void initState() {
@@ -200,6 +202,13 @@ class _HubScreenState extends State<HubScreen> {
     }
 
     final notaAcumulada = _calcularNotaTotal();
+    
+    // Check if user has at least 1 attempt in all 4 activities
+    bool hasAct1 = _intentos.any((i) => i['actividad_id'] == 1);
+    bool hasAct2 = _intentos.any((i) => i['actividad_id'] == 2);
+    bool hasAct3 = _intentos.any((i) => i['actividad_id'] == 3);
+    bool hasAct4 = _intentos.any((i) => i['actividad_id'] == 4);
+    bool todasCompletadas = hasAct1 && hasAct2 && hasAct3 && hasAct4;
 
     return Scaffold(
       appBar: AppBar(
@@ -305,6 +314,33 @@ class _HubScreenState extends State<HubScreen> {
               }
             ),
           ),
+          
+          if (todasCompletadas && !_encuestaCompletada)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SurveyScreen()),
+                  ).then((success) {
+                    if (success == true) {
+                      setState(() {
+                        _encuestaCompletada = true;
+                      });
+                    }
+                  });
+                },
+                icon: const Icon(Icons.star, color: Colors.amber),
+                label: const Text('Evaluar Experiencia', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  backgroundColor: Colors.blue.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  elevation: 5,
+                ),
+              ),
+            ),
         ],
       ),
     );
