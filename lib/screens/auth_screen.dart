@@ -151,7 +151,10 @@ class _AuthScreenState extends State<AuthScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Container(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
             constraints: const BoxConstraints(maxWidth: 400),
             padding: const EdgeInsets.all(32.0),
             decoration: BoxDecoration(
@@ -386,6 +389,19 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
           ),
+                const SizedBox(height: 32),
+                const Text(
+                  'App Desarrollada por Kelvin Lambraño',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
         ),
       ),
     );
