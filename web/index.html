@@ -93,6 +93,17 @@
       text-align: center;
       border: 1px dashed #475569;
     }
+
+    /* Ocultar badge flotante de Netlify */
+    [class*="netlify-badge"],
+    [id*="netlify-badge"],
+    a[href*="netlify.com"],
+    iframe[src*="netlify"] {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body style="background-color: #0F172A;">

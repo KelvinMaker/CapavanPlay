@@ -17,6 +17,7 @@ class _HubScreenState extends State<HubScreen> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> _intentos = [];
+  List<Map<String, dynamic>> _intentosExtra = [];
   bool _encuestaCompletada = false;
 
   @override
@@ -33,8 +34,28 @@ class _HubScreenState extends State<HubScreen> {
           .select()
           .eq('estudiante_id', userId);
 
+      List<Map<String, dynamic>> extraList = [];
+      try {
+        final extraRes = await _supabase
+            .from('intentos_extra')
+            .select()
+            .eq('estudiante_id', userId);
+        extraList = List<Map<String, dynamic>>.from(extraRes);
+      } catch (e) {
+        debugPrint('Error o sin tabla intentos_extra: $e');
+      }
+
+      // Revisar si ya hizo la encuesta
+      final encuestaRes = await _supabase
+          .from('satisfaccion')
+          .select()
+          .eq('estudiante_id', userId)
+          .maybeSingle();
+
       setState(() {
         _intentos = List<Map<String, dynamic>>.from(response);
+        _intentosExtra = extraList;
+        _encuestaCompletada = encuestaRes != null;
         _isLoading = false;
       });
     } catch (e) {
@@ -43,6 +64,14 @@ class _HubScreenState extends State<HubScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  int _obtenerMaxIntentos(int actividadId) {
+    final item = _intentosExtra.firstWhere(
+      (e) => e['actividad_id'] == actividadId,
+      orElse: () => {'intentos_maximos': 3},
+    );
+    return (item['intentos_maximos'] as int?) ?? 3;
   }
 
   double _calcularNotaActividad(int actividadId) {
@@ -84,6 +113,20 @@ class _HubScreenState extends State<HubScreen> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
+          final cantidad = _intentos.where((i) => i['actividad_id'] == actividadId).length;
+          final maxPermitido = _obtenerMaxIntentos(actividadId);
+
+          if (cantidad >= maxPermitido) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Ya completaste tus $maxPermitido intentos permitidos para esta actividad.'),
+                backgroundColor: Colors.orange.shade900,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+            return;
+          }
+
           if (actividadId == 1) {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const Actividad1Screen()),
@@ -175,10 +218,20 @@ class _HubScreenState extends State<HubScreen> {
                 child: Builder(
                   builder: (context) {
                     final cantidad = _intentos.where((i) => i['actividad_id'] == actividadId).length;
+                    final maxPermitido = _obtenerMaxIntentos(actividadId);
+                    final bool tieneExtra = maxPermitido > 3;
+
+                    String texto;
+                    if (tieneExtra) {
+                      texto = '$cantidad/$maxPermitido Intentos (¡Extra!)';
+                    } else {
+                      texto = '$cantidad/3 Intentos';
+                    }
+
                     return Text(
-                      cantidad > 3 ? '$cantidad/$cantidad Intentos (Extra)' : '$cantidad/3 Intentos',
+                      texto,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: tieneExtra ? Colors.amberAccent : Colors.white.withOpacity(0.7),
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),

@@ -75,8 +75,24 @@ class _Actividad2ScreenState extends State<Actividad2Screen> {
         numeroIntento = (response.first['numero_intento'] as int) + 1;
       }
 
-      if (numeroIntento > 3) {
-        throw Exception("Has superado el límite de 3 intentos base.");
+      // Consultar si tiene autorización de intentos extra
+      int maxPermitido = 3;
+      try {
+        final extraRes = await _supabase
+            .from('intentos_extra')
+            .select('intentos_maximos')
+            .eq('estudiante_id', userId)
+            .eq('actividad_id', 2)
+            .maybeSingle();
+        if (extraRes != null && extraRes['intentos_maximos'] != null) {
+          maxPermitido = extraRes['intentos_maximos'] as int;
+        }
+      } catch (e) {
+        debugPrint('Error consultando intentos_extra en Act 2: $e');
+      }
+
+      if (numeroIntento > maxPermitido) {
+        throw Exception("Has superado el límite de $maxPermitido intentos.");
       }
 
       // Guardar en Supabase

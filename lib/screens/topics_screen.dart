@@ -50,7 +50,7 @@ class _TopicsScreenState extends State<TopicsScreen> {
       // Cargamos temas y hacemos un "join" manual o mediante Foreign Key con perfiles para ver quién reservó
       final response = await _supabase
           .from('temas')
-          .select('*, perfiles(nombres, apellidos)')
+          .select('*, perfiles(identificacion, nombres, apellidos)')
           .order('id', ascending: true);
 
       setState(() {
