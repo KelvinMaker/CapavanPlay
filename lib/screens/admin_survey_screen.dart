@@ -16,6 +16,7 @@ class _AdminSurveyScreenState extends State<AdminSurveyScreen> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<Map<String, dynamic>> _encuestas = [];
+  Map<String, Map<String, dynamic>> _perfilesMap = {};
 
   @override
   void initState() {
@@ -26,8 +27,21 @@ class _AdminSurveyScreenState extends State<AdminSurveyScreen> {
   Future<void> _cargarDatos() async {
     try {
       final response = await _supabase.from('satisfaccion').select();
+
+      // Consultar perfiles para cruzar la identificación real
+      Map<String, Map<String, dynamic>> perfilesMap = {};
+      try {
+        final perfilesRes = await _supabase.from('perfiles').select('id, identificacion, nombres, apellidos');
+        for (var p in perfilesRes) {
+          perfilesMap[p['id'].toString()] = Map<String, dynamic>.from(p);
+        }
+      } catch (pe) {
+        debugPrint('Error cargando perfiles en encuesta: $pe');
+      }
+
       setState(() {
         _encuestas = List<Map<String, dynamic>>.from(response);
+        _perfilesMap = perfilesMap;
         _isLoading = false;
       });
     } catch (e) {
@@ -42,12 +56,20 @@ class _AdminSurveyScreenState extends State<AdminSurveyScreen> {
     if (_encuestas.isEmpty) return;
 
     try {
-      // 1. Crear el encabezado del CSV
-      String csvData = "ID_Estudiante,Transferencia,Utilidad,Motivacion,Usabilidad,Impacto,Fecha\n";
+      // 1. Crear el encabezado del CSV con BOM UTF-8 para Excel
+      String csvData = "\uFEFFIdentificacion,Apellidos,Nombres,Transferencia,Utilidad,Motivacion,Usabilidad,Impacto,Fecha\n";
 
-      // 2. Llenar los datos
+      // 2. Llenar los datos cruzando con el perfil del estudiante
       for (var row in _encuestas) {
-        final estId = row['estudiante_id'] ?? '';
+        final estUuid = row['estudiante_id']?.toString() ?? '';
+        final perfil = _perfilesMap[estUuid];
+
+        final identificacion = perfil != null 
+            ? (perfil['identificacion'] ?? estUuid) 
+            : estUuid;
+        final apellidos = perfil != null ? (perfil['apellidos'] ?? '').toString().replaceAll(',', ' ') : '';
+        final nombres = perfil != null ? (perfil['nombres'] ?? '').toString().replaceAll(',', ' ') : '';
+
         final q1 = row['q1_transferencia'] ?? '';
         final q2 = row['q2_utilidad'] ?? '';
         final q3 = row['q3_motivacion'] ?? '';
@@ -55,7 +77,7 @@ class _AdminSurveyScreenState extends State<AdminSurveyScreen> {
         final q5 = row['q5_impacto'] ?? '';
         final fecha = row['fecha'] ?? '';
         
-        csvData += "$estId,$q1,$q2,$q3,$q4,$q5,$fecha\n";
+        csvData += "\"$identificacion\",\"$apellidos\",\"$nombres\",$q1,$q2,$q3,$q4,$q5,\"$fecha\"\n";
       }
 
       if (kIsWeb) {
